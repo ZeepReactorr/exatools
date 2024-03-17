@@ -5,8 +5,8 @@ The development is still ongoing and currently limited to the PubMed database of
 
 **If you have questions, find bugs, or have ideas of features you would like to propose, do not hesitate to reach out at mattgitqna@gmail.com**
 
-If you do not enjoy using a terminal, fear not ! You can download a rudimentary graphic interface for exatool here : https://github.com/ZeepReactorr/exatools/releases/download/release_1.0/exatool_WINDOWS_1.0_setup.exe
-Be aware that it will be slower than if you used a terminal :).
+If you do not enjoy using a terminal, fear not ! You can download a rudimentary graphic interface for exatool here : https://github.com/ZeepReactorr/exatools/releases/download/release_1.0/exatool_WINDOWS_1.0_setup.exe <br>
+Be aware that it **will be slower** than if you used a terminal :).
 
 ## Prerequisite 
 
