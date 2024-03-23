@@ -3,6 +3,11 @@ import time
 import os
 import re
 import sys
+from matplotlib.pyplot import figure
+import numpy as np
+from matplotlib import pyplot as plt
+import urllib.request as ul
+import streamlit as st
 
 #Automate the path changing to the directory where the .csv is
 dir_path = os.path.dirname(os.path.realpath(__file__))
