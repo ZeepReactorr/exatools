@@ -206,6 +206,8 @@ def switch_page(url, pure_url):
     client.close()
     db = soup(htmldata, "html.parser")
     locator = db.findAll('span', {'class':'value'})  
+    return st.write(locator)
+
     nb_articles = ''.join(re.findall('[0-9]+', str(locator[0])))
     limite = (int(nb_articles)//10)+1
     if limite > 100:
