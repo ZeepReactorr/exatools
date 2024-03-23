@@ -91,7 +91,14 @@ def sci(keywords):
             for t in txt:
                 if t.parent.name not in blacklist:
                     output += '{}'.format(t)
-                    
+
+            if len(output) < 1000:
+                count_bad_links+=1
+                continue
+            else:
+                number+=1
+                
+            
             output = re.sub("\n|\r|\rn", '', output) 
             output = output[output.find('Abstract'):]
             output = str(output[:output.find('References')]).lower()            
@@ -106,8 +113,7 @@ def sci(keywords):
         print(key, res)
 
     #Summarize the results in the console to give a preview of the results
-    print(f'Corresponding articles found : {number}')
-    print(f'impossible links to retrieve : {count_bad_links}')
+    print(f'full text retrieved : {number}\t impossible links to retrieve : {count_bad_links}')
     F.close()
     return 'Done'
 
