@@ -131,7 +131,7 @@ def tendency(keywords, date_range):
     for i in count_dates:
         res = [count_dates[i].count(j) for j in dates]
         dates = [i+dec for i in dates]
-        plt.bar(dates, res, label=i, width = 0.4)
+        plt.bar(dates, res, label=i, width = 0.4, alpha=0.2)
         plt.xlabel('time')
         plt.ylabel('number of publications')
         plt.title(f'Global distribution of the publications between {date_range[0]} and {date_range[1]}')
