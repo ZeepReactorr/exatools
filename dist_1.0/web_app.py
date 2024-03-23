@@ -28,6 +28,8 @@ st.markdown("If you found this tool useful, please cite it as : **BETTIATI M. (2
 
 if st.button("Start research"):
     url = f"https://pubmed.ncbi.nlm.nih.gov/?term={domain}&filter=simsearch2.ffrft&filter=years.{date}"
+    st.write(url)
+    print(url)
     with st.status("Running...", expanded=True) as status:
         if st.button("stop"):
             status.update("Stopped")
