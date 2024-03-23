@@ -46,6 +46,11 @@ if st.button("Start research"):
     exatool.tendency(keywords, date_range)
     st.image("plot.png", width=900)
 
+    st.download_button("Download plot", "plot.png")
+    
+    time.sleep(1000)
+
+
 #oxyrrhis sequencing  
 #illumina nanopore 
 #2010 2024
