@@ -208,8 +208,8 @@ def switch_page(url, pure_url):
     locator = db.findAll('span', {'class':'value'})  
     nb_articles = re.findall('[0-9]+', str(locator[0]))
     limite = (int(nb_articles[0])//10)+1
-    if limite > 100:
-        limite = 100
+    if limite > 1000:
+        limite = 1000
     count = 1
     link = url
     
