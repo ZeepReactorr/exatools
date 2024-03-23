@@ -1,4 +1,4 @@
-from beautifulsoup4 import BeautifulSoup as soup
+from bs4 import BeautifulSoup as soup
 import requests as req
 import PyPDF2
 from io import BytesIO
