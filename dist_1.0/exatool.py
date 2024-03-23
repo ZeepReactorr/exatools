@@ -113,7 +113,7 @@ def sci(keywords):
         print(key, res)
 
     #Summarize the results in the console to give a preview of the results
-    st.write(f'full text retrieved : {number}\t impossible links to retrieve : {count_bad_links}')
+    st.markdown(f'full text retrieved : {number}\t impossible links to retrieve : {count_bad_links}')
     F.close()
     return 'Done'
 
