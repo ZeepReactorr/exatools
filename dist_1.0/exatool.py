@@ -148,55 +148,29 @@ def tendency(keywords, date_range):
     plt.savefig('plot.png')
     results.close()
 
-def dl_intel(url, pure_url):
-    #Initializing variables
-    responseTxt_4 = ''
-    
-    #Opening links to articles used to trim the HTML data
-    DOI_trash = []
-    
-    #Obtain HTML data
+def dl_intel(url, pure_url):  
+    #get HTML data
     client = req.get(url)
     htmldata = client.text
-    client.close()
-    
-    #this part finds the data we look for thanks to HTML beacons, here we want to find the PMID because an article link is always in the form https://pubmed.ncbi.nlm.nih.gov/<PMID>
+    client.close()    
+
+    #Locate the desired data : here we want to filter out the reviews 
     db = soup(htmldata, "html.parser")
-    locator = db.findAll('a', {'class':'docsum-title'}, href = True)  
-    locator_2 = re.findall(r'(?<=href="/)\w+', str(locator))
-    links = [i for i in locator_2]
-    
-    #reforge the url and store it in a new list
-    clean_links = [str(pure_url + str(i.strip()) + '/') for i in links]
+    locator = db.findAll('span', {'class':'docsum-journal-citation full-journal-citation'})  
 
-    for i in clean_links:        
-        #We can now use the reforged URL to access each article in the webpage
-        site_2 = ul.Request(i)
-        client_2 = ul.urlopen(i)
-        htmldata_2 = client_2.read()
-        client_2.close()
-        
-        db_2 = soup(htmldata_2, "html.parser")
-        
-        #Here we locate each element we need to retrieve and store it. Since some caracters used in the articles are not understood we explicitely encode them in UTF-8.
-        locator_date = db_2.findAll('span', {'class':'cit'})
-        try :
-            date = str(re.findall("\d{4}", str(locator_date))[0])
-        except :
-            continue
-        
-        locator_4 = db_2.findAll('a', {'class':'id-link'})
-        for n in locator_4:
-            responseTxt_4 = n.text.encode('UTF-8')
-        responseTxt_4 = str(responseTxt_4.strip())
-        responseTxt_4 = responseTxt_4[2:-1]
-        
-        #Store the DOI of the articles and the date they were written
-        DOI_trash.append(f"{responseTxt_4}\t{date}\n")
-    
-    return DOI_trash
+    # <span class="docsum-journal-citation full-journal-citation">Nat Commun. 2023 Nov 3;14(1):7049. doi: 10.1038/s41467-023-42807-0.</span>
+    doi_list = re.findall('doi: (.*?)(?=.<|. )', str(locator))
 
-#print(dl_intel('https://pubmed.ncbi.nlm.nih.gov/?term=mitochondria&page=1', 'https://pubmed.ncbi.nlm.nih.gov/'))
+    locator = 'KODE'.join(str(locator).split('</span>'))
+    locator = re.sub(';(.*?)(?=.<|<)', "", locator)
+    locator = re.sub(";.*", "", locator)
+    date_list = re.findall('\d{4}', locator)
+    
+    intel = [f"{doi_list[i]}\t{date_list[i]}" for i in range(0, len(doi_list))]
+
+    return intel
+
+#print(dl_intel('https://pubmed.ncbi.nlm.nih.gov/?term=dolphin+sequencing&filter=simsearch2.ffrft&filter=years.2010-2024&size=200', 'https://pubmed.ncbi.nlm.nih.gov/'))
 
 #This function's sole purpose is to pass to the next page in PubMed. It is possible to set a limit to how many pages you want to collect the articles' link from.
 def switch_page(url, pure_url):
@@ -232,4 +206,3 @@ def switch_page(url, pure_url):
     return ''
 
 #print(switch_page('https://pubmed.ncbi.nlm.nih.gov/?term=oxyrrhis+sequencing&filter=simsearch2.ffrft&filter=years.2010-2024', 'https://pubmed.ncbi.nlm.nih.gov/'))
-
