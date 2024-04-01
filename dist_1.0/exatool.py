@@ -166,7 +166,7 @@ def dl_intel(url, pure_url):
     locator = re.sub(";.*", "", locator)
     date_list = re.findall('\d{4}', locator)
     
-    intel = [f"{doi_list[i]}\t{date_list[i]}" for i in range(0, len(doi_list))]
+    intel = [f"{doi_list[i]}\t{date_list[i]}\n" for i in range(0, len(doi_list))]
 
     return intel
 
