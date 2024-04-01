@@ -182,7 +182,7 @@ def switch_page(url, pure_url):
     locator = db.findAll('span', {'class':'value'})  
 
     nb_articles = ''.join(re.findall('[0-9]+', str(locator[0])))
-    limite = (int(nb_articles)//10)+1
+    limite = (int(nb_articles)//200)+1
     if limite > 100:
         limite = 100
     count = 1
@@ -202,7 +202,7 @@ def switch_page(url, pure_url):
         count+=1
         for lines in K:
             Results.write(lines)
-    st.write(f'{limite} articles retrieved !\n')
+    st.write(f'{nb_articles} articles retrieved !\n')
     return ''
 
-#print(switch_page('https://pubmed.ncbi.nlm.nih.gov/?term=oxyrrhis+sequencing&filter=simsearch2.ffrft&filter=years.2010-2024', 'https://pubmed.ncbi.nlm.nih.gov/'))
+print(switch_page('https://pubmed.ncbi.nlm.nih.gov/?term=dinoflagellates+sequencing&filter=simsearch2.ffrft&filter=years.2010-2024&size=200', 'https://pubmed.ncbi.nlm.nih.gov/'))
