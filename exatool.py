@@ -2,44 +2,43 @@ from bs4 import BeautifulSoup as soup
 import requests as req
 import PyPDF2
 from io import BytesIO
+from matplotlib.pyplot import figure
 import os
 import re
 import sys
 import numpy as np
 from matplotlib import pyplot as plt
-from matplotlib.pyplot import figure
 import urllib.request as ul
-from bs4 import BeautifulSoup as soup
+import pandas as pd
+import itertools
+
+#change into the desired directory to store the results of the sorting
+dir_path = os.path.dirname(os.path.realpath(__file__))
+os.chdir(dir_path)
 
 def sci(keywords):    
     #initialization of variables
-    signal = 1
     keywords = ['NULL'] + keywords
     dico_keywords = {i:0 for i in keywords}
     
     #Opens the document outputed from link_retriever.py
-    F = open('Results.txt', 'r', encoding='utf-8')
-    for count, line in enumerate(F):
-        pass
-    limite = count +1
-    F.close()
+    with open('Results.txt', 'r', encoding='utf-8') as F:
+        F = F.readlines()
+        limite = len(F)
     
-    F = open('Results.txt', 'r', encoding='utf-8')
-
     #Opens output file
     Searched_material = open('Searched_material.txt', 'w', encoding='utf-8')
     count_bad_links = 0
     number = 0
-    
+
     #loop through each lines of the file with a link in each
-    for i in F.readlines(): 
+    for index, i in enumerate(F): 
         #process the line to obtain a viable DOI
         i = i.strip('\n')
         i = i.split('\t')
 
         #indicates progression of the program
-        print(f'article n° {str(signal)}\tloading : {np.round((signal/limite)*100)}%')
-        signal+=1
+        print(f"{np.round((index/limite)*100, 2)}%")
                 
         #rebuild the link to the full article
         link = 'https://doi.org/' + i[0]
@@ -86,10 +85,19 @@ def sci(keywords):
             for t in txt:
                 if t.parent.name not in blacklist:
                     output += '{}'.format(t)
-                    
+
+            if len(output) < 1000:
+                count_bad_links+=1
+                continue
+            else:
+                number+=1                
+            
             output = re.sub("\n|\r|\rn", '', output) 
-            output = output[output.find('Abstract'):]
-            output = str(output[:output.find('References')]).lower()            
+            output = output[output.find('Abstract'):].lower()
+            try : 
+                output = str(output[:max([m.start() for m in re.finditer('references', output)])])
+            except : 
+                output = str(output)      
                         
         #write the link in the output document if the conditions are fullfilled : if it is exactly the desired material.        
         dico = {keywords[i]:output.count(keywords[i].lower()) for i in range(0, len(keywords))}
@@ -101,22 +109,20 @@ def sci(keywords):
         print(key, res)
 
     #Summarize the results in the console to give a preview of the results
-    print(f'Corresponding articles found : {number}')
-    print(f'impossible links to retrieve : {count_bad_links}')
-    F.close()
+    print(f'full text retrieved : {number}\t impossible links to retrieve : {count_bad_links}')
     return 'Done'
-    
+
+#print(sci(["Illumina", "Nanopore"]))
+
 def tendency(keywords):
     #open results files
     results = open('Searched_material.txt', 'r', encoding='utf-8')
-    
+
     #Process the data in list containing only the date in which the articles were written
     list_material_date = [(i.split('\t')[1].strip('\n'),i.split('\t')[2].strip('\n')) for i in results.readlines()]
-    
+
     #Initialize the dates to position the temporality of the articles
-    date_list = [int(i[0]) for i in list_material_date]
-    date_range = (min(date_list), max(date_list))
-    dates = [i for i in range(date_range[0]-1, date_range[1]-1)]
+    dates = [date for date in range(min([int(elt[0]) for elt in list_material_date]), max([int(elt[0]) for elt in list_material_date]))]
     
     #Count each date occurence as each article has an associated publication date. Thus number of date = number of articles
     count_dates = {i:[int(j[0]) for j in list_material_date if j[1] == i] for i in keywords}
@@ -126,76 +132,70 @@ def tendency(keywords):
     for i in count_dates:
         res = [count_dates[i].count(j) for j in dates]
         dates = [i+dec for i in dates]
-        plt.bar(dates, res, label=i, width = 0.4)
+        plt.bar(dates, res, label=i, width = 0.4, alpha=0.2)
         plt.xlabel('time')
         plt.ylabel('number of publications')
-        plt.title(f'Global distribution of the publications between {date_range[0]} and {date_range[1]}')
-        dec += 0.25
-    
+        plt.title(f'Global distribution of the publications between {min(dates)} and {max(dates)}')
 
+    
     plt.legend()
     plt.savefig('plot.png')
     results.close()
 
-def dl_intel(url, pure_url):
-    #Initializing variables
-    responseTxt_4 = ''
-    
-    #Opening links to articles used to trim the HTML data
-    DOI_trash = open('DOI_trash.txt', 'w')
-    
-    #Obtain HTML data
+#tendency(['virus', 'prokaryote', 'eukaryote'])
+
+def dl_intel(url):  
+    #get HTML data
     client = req.get(url)
     htmldata = client.text
-    client.close()
-    
-    #this part finds the data we look for thanks to HTML beacons, here we want to find the PMID because an article link is always in the form https://pubmed.ncbi.nlm.nih.gov/<PMID>
-    db = soup(htmldata, "html.parser")
-    locator = db.findAll('a', {'class':'docsum-title'}, href = True)  
-    locator_2 = re.findall(r'(?<=href="/)\w+', str(locator))
-    links = [i for i in locator_2]
-    
-    #reforge the url and store it in a new list
-    clean_links = [str(pure_url + str(i.strip()) + '/') for i in links]
+    client.close()    
 
-    for i in clean_links:        
-        #We can now use the reforged URL to access each article in the webpage
-        site_2 = ul.Request(i)
-        client_2 = ul.urlopen(i)
-        htmldata_2 = client_2.read()
-        client_2.close()
+    #Locate the desired data : here we want to filter out the reviews 
+    db = soup(htmldata, "html.parser")
+    locator = db.findAll('span', {'class':'docsum-journal-citation full-journal-citation'})  
+    locator_review = db.findAll('div', {'class':'docsum-content'})  
         
-        db_2 = soup(htmldata_2, "html.parser")
-        
-        #Here we locate each element we need to retrieve and store it. Since some caracters used in the articles are not understood we explicitely encode them in UTF-8.
-        locator_date = db_2.findAll('span', {'class':'cit'})
-        try :
-            date = str(re.findall("\d{4}", str(locator_date))[0])
-        except :
-            continue
-        
-        locator_4 = db_2.findAll('a', {'class':'id-link'})
-        for n in locator_4:
-            responseTxt_4 = n.text.encode('UTF-8')
-        responseTxt_4 = str(responseTxt_4.strip())
-        responseTxt_4 = responseTxt_4[2:-1]
-        
-        #Store the DOI of the articles and the date they were written
-        DOI_trash.write(responseTxt_4 + '\t' + date + '\n')
+    base = str(locator_review).split("docsum-content")
+    del base[0]
+    locator = str(locator).split('</span>')
+    del locator[-1]
+
+    #les index correspondent 
+    is_review = [index for index, val in enumerate(base) if "Review" in val]
+    is_review += [index for index, val in enumerate(base) if "doi:" not in val]
+
+    for index in sorted(is_review, reverse=True):
+        del locator[index]
+
+    locator = ' KODE '.join(locator) + ' '
+
+    doi_list = re.findall('doi: (.*?)(?=.<|. )', str(locator))
+    locator = re.sub(';(.*?)(?=.<|<)', "", locator)
+    locator = re.sub(";.*", "", locator)
+    date_list = re.findall(' \d{4} ', locator)
+
+    assert(len(doi_list) == len(date_list))
     
-    DOI_trash.close()
-    return True
+    intel = [f"{doi_list[i]}\t{date_list[i].strip(' ')}\n" for i in range(0, len(doi_list))]
+
+    return intel
+
+dl_intel(f"https://pubmed.ncbi.nlm.nih.gov/?term=nanopore+sequencing&filter=simsearch2.ffrft&filter=years.2014-2024&size=200&page=2")
 
 #This function's sole purpose is to pass to the next page in PubMed. It is possible to set a limit to how many pages you want to collect the articles' link from.
-def switch_page(url, pure_url):
+def switch_page(url):
     #find the limit number of pages to go through
     client = req.get(url)
     htmldata = client.text
     client.close()
     db = soup(htmldata, "html.parser")
     locator = db.findAll('span', {'class':'value'})  
-    limite = int(re.findall('[0-9]+', str(locator[0]))[0])//10
 
+    nb_articles = ''.join(re.findall('[0-9]+', str(locator[0])))
+    print(nb_articles)
+    limite = (int(nb_articles)//200)+1
+    if limite > 30:
+        limite = 5
     count = 1
     link = url
     
@@ -203,26 +203,29 @@ def switch_page(url, pure_url):
     Results = open('Results.txt', 'w')
     
     while count <= limite :
-        print(dl_intel(link, pure_url), f'Progression : {np.round((count/limite)*100)}%')
         link = url + '&page=' + str(count)
+        K=dl_intel(link)
+        print(f"{np.round((count/limite)*100)}%")
         count+=1
-        K = open('DOI_trash.txt', 'r')
-        for lines in K.readlines():
+        for lines in K:
             Results.write(lines)
-            
-    K.close()
-    return 'All Done !'
+    print(f'{limite} articles retrieved !\n')
+    return ''
 
 if __name__ == "__main__":
     keywords = list(' '.join(sys.argv[3:]).split())    
+    print(keywords)
     url = str(sys.argv[2])
     dir_output = str(sys.argv[1])
     pure_url = 'https://pubmed.ncbi.nlm.nih.gov/'
     
     os.chdir(dir_output)
-    switch_page(url, pure_url)
+    switch_page(url)
     print('Articles retrieved successfully, beginning sorting...')
-    sci(keywords)
+    try :
+        sci(keywords)
+    except Exception:
+        pass
     print('Sorting done, preparig visual representation')
     tendency(keywords)
     print('Figure is ready')
