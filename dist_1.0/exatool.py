@@ -90,7 +90,7 @@ def sci(keywords):
     textbar = "Searching keywords..."
     bar_articles = st.progress(0, text=textbar)
 
-    st.write(f"{multiprocessing.cpu_count()} CPU available for anlaysis")
+    st.write(f"{multiprocessing.cpu_count()} CPU available for analysis")
     
     try :
         with Pool(processes=6) as pool:
