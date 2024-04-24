@@ -83,7 +83,7 @@ def sci(keywords):
     
     #Opens output file
     Searched_material = []
-    index = 1
+    index = 0
     article_not_found = 0
     article_not_accessible = 0
 
@@ -99,6 +99,7 @@ def sci(keywords):
                 print(f"{np.round((index/limite)*100, 2)}%")
                 index+=1
                 if len(output) > 2 :
+                    bar_articles.progress(np.round((index/limite), 2), text=textbar)
                     output, link, date = output
                     #write the link in the output document if the conditions are fullfilled : if it is exactly the desired material.        
                     dico = {keywords[i]:output.count(keywords[i].lower()) for i in range(0, len(keywords))}
