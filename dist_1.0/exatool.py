@@ -213,7 +213,7 @@ def switch_page(url):
     nb_articles = ''.join(re.findall('[0-9]+', str(locator[0])))
     limite = (int(nb_articles)//200)+1
     if limite > 30:
-        limite = 5
+        limite = 25
     count = 1
     link = url
     
