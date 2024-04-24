@@ -91,8 +91,10 @@ def sci(keywords):
     textbar = "Searching keywords..."
     bar_articles = st.progress(0, text=textbar)
 
+    st.write(multiprocessing.cpu_count())
+    
     try :
-        with Pool(processes=6) as pool:
+        with Pool(processes=multiprocessing.cpu_count()) as pool:
             for output in pool.imap(hat, F):
                 #indicates progression of the program
                 print(f"{np.round((index/limite)*100, 2)}%")
