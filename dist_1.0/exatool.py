@@ -33,8 +33,7 @@ def hat(i):
         retrieved_data = req.get(link)
         my_raw_data = retrieved_data.content
     except Exception:
-        pass
-        #count_bad_links +=1
+        return '0'
 
     output = ''
     #if the DOI redirect toward a PDF, the text is extracted from it in this code
@@ -58,12 +57,9 @@ def hat(i):
         if t.parent.name not in blacklist:
             output += '{}'.format(t)
 
-    if len(output) < 1000:
-        pass
-        #count_bad_links+=1
-    else:
-        pass
-        #number+=1                
+    if len(output) < 500:
+        return '1'
+        #count_bad_links+=1            
     
     output = re.sub("\n|\r|\rn", '', output) 
     output = output[output.find('Abstract'):].lower()
@@ -88,33 +84,41 @@ def sci(keywords):
     #Opens output file
     Searched_material = []
     index = 1
+    article_not_found = 0
+    article_not_accessible = 0
 
     textbar = "Searching keywords..."
     bar_articles = st.progress(0, text=textbar)
 
-    st.write(multiprocessing.cpu_count())
+    st.write(f"{multiprocessing.cpu_count()} CPU available for anlaysis")
     
     try :
-        with Pool(processes=multiprocessing.cpu_count()) as pool:
+        with Pool(processes=6) as pool:
             for output in pool.imap(hat, F):
                 #indicates progression of the program
                 print(f"{np.round((index/limite)*100, 2)}%")
-                bar_articles.progress(np.round((index/limite), 2), text=textbar)
                 index+=1
-                output, link, date = output
-                #write the link in the output document if the conditions are fullfilled : if it is exactly the desired material.        
-                dico = {keywords[i]:output.count(keywords[i].lower()) for i in range(0, len(keywords))}
-                dico_keywords[max(dico, key=dico.get)] += 1
+                if len(output) > 2 :
+                    output, link, date = output
+                    #write the link in the output document if the conditions are fullfilled : if it is exactly the desired material.        
+                    dico = {keywords[i]:output.count(keywords[i].lower()) for i in range(0, len(keywords))}
+                    dico_keywords[max(dico, key=dico.get)] += 1
 
-                Searched_material.append(link + '\t' + date + '\t' + str(max(dico, key=dico.get)) + '\n')
-                dico = {}
+                    Searched_material.append(link + '\t' + date + '\t' + str(max(dico, key=dico.get)) + '\n')
+                    dico = {}
+                else:
+                    if output == "1" :
+                        article_not_accessible +=1
+                    elif output == "0":
+                        article_not_found += 1
 
     except Exception:
         return "Multiproccessing failed"
     
     for key, res in dico_keywords.items():
-        print(key, res)
-
+        st.write(key, res)
+    st.write(f"articles not found : {article_not_found}", f"articles not accessible : {article_not_accessible}", sep="\n")
+    
     with open('Searched_material.txt', 'w', encoding='utf-8') as final_file :
         for line in Searched_material:
             final_file.write(line)
