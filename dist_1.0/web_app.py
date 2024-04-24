@@ -2,14 +2,7 @@ import streamlit as st
 import time
 import os
 import re
-import sys
-from matplotlib.pyplot import figure
-import numpy as np
-from matplotlib import pyplot as plt
-import urllib.request as ul
-import streamlit as st
 
-#Automate the path changing to the directory where the .csv is
 dir_path = os.path.dirname(os.path.realpath(__file__))
 os.chdir(dir_path)
 
@@ -27,15 +20,15 @@ date_range = date.split('-')
 st.markdown("If you found this tool useful, please cite it as : **BETTIATI M. (2024). Exatools [Python]. https://github.com/ZeepReactorr/exatools**", )
 
 if st.button("Start research"):
-    url = f"https://pubmed.ncbi.nlm.nih.gov/?term={domain}&filter=simsearch2.ffrft&filter=years.{date}&size=200"
+    url = f"https://pubmed.ncbi.nlm.nih.gov/?term={domain}&filter=simsearch2.ffrft&filter=years.{date}&sort_order=asc&size=200"
+     
     st.write(url)
-    print(url)
     with st.status("Running...", expanded=True) as status:
         if st.button("stop"):
             status.update("Stopped")
             st.stop()
             
-        exatool.switch_page(url, PURE_URL)
+        exatool.switch_page(url)
             
         exatool.sci(keywords)
 
@@ -43,13 +36,8 @@ if st.button("Start research"):
         time.sleep(1.5)
         status.update(expanded=False)
 
-    exatool.tendency(keywords, date_range)
-    st.image("plot.png", width=900)
-
-    st.download_button("Download plot", "plot.png")
-    
-    time.sleep(1000)
-
+    exatool.tendency(keywords)
+    st.image(f'plot_{"_".join(keywords)}.png', width=900)
 
 #oxyrrhis sequencing  
 #illumina nanopore 
