@@ -188,7 +188,7 @@ def dl_intel(url):
 
     doi_list = re.findall('doi: (.*?)(?=.<|. )', str(locator))
     locator = re.sub(';(.*?)(?=.<|<)', "", locator)
-    locator = re.sub(";.*", "", locator)
+    locator = re.sub(";.*|:", " ", locator)
     locator += ' '
     date_list = re.findall(' \d{4} ', locator)
 
