@@ -7,6 +7,7 @@ from matplotlib import pyplot as plt
 import urllib.request as ul
 import pandas as pd
 import seaborn as sns
+import multiprocessing
 from multiprocessing import Pool
 import streamlit as st
 
