@@ -96,7 +96,7 @@ def sci(keywords):
         with Pool(processes=6) as pool:
             for output in pool.imap(hat, F):
                 #indicates progression of the program
-                print(f"{np.round((index/limite)*100, 2)}%")
+                print("started multithreading")
                 index+=1
                 if len(output) > 2 :
                     bar_articles.progress(np.round((index/limite), 2), text=textbar)
