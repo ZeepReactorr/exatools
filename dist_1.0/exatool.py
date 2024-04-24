@@ -214,6 +214,7 @@ def switch_page(url):
     limite = (int(nb_articles)//200)+1
     if limite > 30:
         limite = 25
+        nb_articles = 25*200
     count = 1
     link = url
     
