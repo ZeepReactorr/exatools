@@ -93,7 +93,7 @@ def sci(keywords):
     st.write(f"{multiprocessing.cpu_count()} CPU available for analysis")
     
     try :
-        with Pool(processes=6) as pool:
+        with Pool(processes=multiprocessing.cpu_count()) as pool:
             for output in pool.imap(hat, F):
                 #indicates progression of the program
                 index+=1
